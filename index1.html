@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="pro-plus-theme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --study-in-progress: rgba(56, 189, 248, 0.1);
+            --study-complete: rgba(34, 197, 94, 0.1);
+            --study-complete-text: #22c55e;
+            --study-progress-bar-in-progress: var(--accent-color);
+            --study-progress-bar-complete: #22c55e;
+            --study-border-today: var(--accent-color);
+            --pro-bg: #111827;
+            --pro-text: #E5E7EB;
+            --secondary-text: #9CA3AF;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --accent-color: #3B82F6;
+            --accent-color-secondary: #EAB308;
+            --btn-bg: #374151;
+            --pro-input-bg: #1F2937;
+            --theme-default-bg: #f8fafc;
+            --theme-default-text: #1f2937;
+            --theme-default-secondary: #6b7280;
+        }
+
+        [data-theme="pro-plus-theme"] {
+            background-color: var(--pro-bg);
+            color: var(--pro-text);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.5s ease-in-out;
+        }
+
+        [data-theme="default"] {
+            background-color: var(--theme-default-bg);
+            color: var(--theme-default-text);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .text-header {
+            color: var(--pro-text);
+        }
+
+        .text-secondary {
+            color: var(--secondary-text);
+        }
+        
+        .pro-input {
+            background-color: var(--pro-input-bg);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            color: var(--pro-text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .pro-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .pro-btn {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .pro-btn:hover {
+            background-color: #2563EB;
+        }
+
+        .secondary-btn {
+            background-color: var(--btn-bg);
+            color: var(--pro-text);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .secondary-btn:hover {
+            background-color: #4B5563;
+        }
+
+        .danger-btn {
+            background-color: transparent;
+            color: #EF4444;
+            border: 1px solid #EF4444;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .danger-btn:hover {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+        }
+        
+        .study-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 0.5rem;
+        }
+        .study-day-card {
+            padding: 0.5rem;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            border-radius: 8px;
+            min-height: 50px;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .study-day-card.selected {
+            background-color: var(--accent-color);
+            color: white;
+            transform: scale(1.05);
+            font-weight: 600;
+        }
+        .study-day-card.today {
+            border: 2px solid var(--study-border-today);
+        }
+        .study-day-card.has-cards::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+        }
+        .study-card {
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .study-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .study-card.status-todo { border-left: 4px solid var(--accent-color-secondary); }
+        .study-card.status-in-progress { border-left: 4px solid var(--accent-color); }
+        .study-card.status-done { border-left: 4px solid var(--study-progress-bar-complete); }
+
+        .study-progress-bar {
+            height: 4px;
+            background-color: var(--card-border);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .study-progress-bar .progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .study-progress-bar .progress-fill.in-progress {
+            background-color: var(--study-progress-bar-in-progress);
+        }
+        .study-progress-bar .progress-fill.complete {
+            background-color: var(--study-progress-bar-complete);
+        }
+        .study-card-checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .modal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            padding: 2rem;
+            border-radius: 16px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .drag-over {
+            border: 2px dashed var(--accent-color);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .apple-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            color: var(--pro-text);
+            background-color: var(--btn-bg);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+        }
+
+        .apple-btn:hover {
+            background-color: #4B5563;
+        }
+
+        .apple-btn:active {
+            transform: scale(0.98);
+        }
+
+        .apple-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .message-box {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: #2D3748;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeIn 0.3s forwards, fadeOut 0.3s 3s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .study-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .study-day-card {
+                min-height: 40px;
+            }
+            .study-card {
+                padding: 1rem;
+            }
+            .modal-content {
+                width: 95%;
+            }
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+    <main id="study-planner-app" class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="apple-btn py-2 px-4 rounded-full">← Back to Dashboard</a>
+                <h1 class="text-3xl sm:text-4xl font-semibold text-header tracking-tight">Study Planner</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openImportExportModal()" class="apple-btn text-sm">Import/Export</button>
+                <button onclick="showConfirmationModal('Are you sure you want to reset all data?', resetData)" class="danger-btn text-sm">Reset Data</button>
+            </div>
+        </header>
+
+        <section id="mini-calendar" class="glass-card p-4 lg:p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="prevDay()" class="secondary-btn py-1 px-2 text-sm" aria-label="Previous day">←</button>
+                <span class="text-xl font-semibold" id="month-display"></span>
+                <button onclick="nextDay()" class="secondary-btn py-1 px-2 text-sm" aria-label="Next day">→</button>
+            </div>
+            <div id="calendar-toggle-container" class="flex justify-between items-center mb-2">
+                <span id="calendar-collapse-title" class="text-lg font-semibold text-header"></span>
+                <button onclick="toggleCalendar()" class="apple-btn py-1 px-2 text-sm">
+                    <span id="calendar-toggle-text">Show Full Calendar</span>
+                </button>
+            </div>
+            <div id="collapsed-calendar-view" class="flex justify-around items-center space-x-2"></div>
+            <div id="full-calendar-view" class="hidden">
+                <div class="study-grid mb-2 text-sm text-secondary font-medium">
+                    <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+                <div class="study-grid" id="calendar-grid"></div>
+            </div>
+        </section>
+
+        <section id="study-toolbar" class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <div class="text-lg font-semibold text-header" id="toolbar-date"></div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="prevDay()" class="apple-btn py-1 px-2 text-sm" aria-label="Previous day">←</button>
+                <button onclick="nextDay()" class="apple-btn py-1 px-2 text-sm" aria-label="Next day">→</button>
+                <button onclick="refreshToToday()" class="apple-btn py-1 px-2 text-sm" aria-label="Go to today's date">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004 12m0 8h5.812A8.001 8.001 0 0020 12m-8-2v4m0 0l2 2m-2-2L8 14" />
+                    </svg>
+                </button>
+                <input type="text" id="search-cards" class="pro-input text-sm" placeholder="Search cards..." value="">
+                <select id="sort-cards" class="pro-input text-sm">
+                    <option value="priority">Sort by Priority</option>
+                    <option value="durationMinutes">Sort by Duration</option>
+                    <option value="createdAt">Sort by Recently Added</option>
+                </select>
+                <button onclick="openCardModal()" class="pro-btn text-sm">Add Card</button>
+                <button onclick="openAITipsModal()" class="apple-btn text-sm">Get AI Study Tips</button>
+                <button onclick="openAIAnalysisModal()" class="apple-btn text-sm">Get AI Progress Analysis</button>
+                <button onclick="openProgressAnalysisModal()" class="apple-btn text-sm">Progress Charts</button>
+            </div>
+        </section>
+        
+        <section id="cards-container"></section>
+
+        <dialog id="card-modal" class="glass-card modal-content w-11/12 md:w-3/4 max-w-3xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-[--accent-color]">Edit Study Card</h2>
+                <button type="button" onclick="closeModal('card-modal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <form id="card-form" class="space-y-4">
+                <input type="hidden" id="card-id">
+                <input type="hidden" id="card-date">
+                <label class="block">
+                    <span class="text-sm text-secondary">Title</span>
+                    <input type="text" id="card-title" class="pro-input w-full mt-1" required>
+                </label>
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <label class="block">
+                        <span class="text-sm text-secondary">Subject</span>
+                        <input type="text" id="card-subject" class="pro-input w-full mt-1">
+                    </label>
+                    <label class="block">
+                        <span class="text-sm text-secondary">Topics/Tags (comma-separated)</span>
+                        <input type="text" id="card-tags" class="pro-input w-full mt-1">
+                    </label>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <label class="block">
+                        <span class="text-sm text-secondary">Status</span>
+                        <select id="card-status" class="pro-input w-full mt-1">
+                            <option value="todo">To Do</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm text-secondary">Duration (mins)</span>
+                        <input type="number" id="card-duration" class="pro-input w-full mt-1">
+                    </label>
+                    <label class="block">
+                        <span class="text-sm text-secondary">Priority (1-5)</span>
+                        <input type="number" id="card-priority" class="pro-input w-full mt-1" min="1" max="5">
+                    </label>
+                </div>
+                <label class="block">
+                    <span class="text-sm text-secondary">Resources (URL or Text)</span>
+                    <input type="text" id="card-resources" class="pro-input w-full mt-1">
+                </label>
+                <label class="block">
+                    <span class="text-sm text-secondary">Notes</span>
+                    <textarea id="card-notes" class="pro-input w-full mt-1 h-24"></textarea>
+                </label>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-secondary">Checklist</span>
+                        <button type="button" id="add-checklist-item" class="secondary-btn text-xs py-1 px-2">Add Item</button>
+                    </div>
+                    <div id="checklist-container" class="space-y-2"></div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('card-modal')" class="secondary-btn">Cancel</button>
+                    <button type="submit" class="pro-btn">Save Card</button>
+                </div>
+            </form>
+        </dialog>
+
+        <!-- New confirmation modal for resetting data -->
+        <dialog id="confirmation-modal" class="glass-card modal-content w-11/12 md:w-1/2 max-w-sm">
+            <div class="space-y-4">
+                <p id="confirmation-message" class="text-lg"></p>
+                <div class="flex justify-end gap-2">
+                    <button id="cancel-confirm-btn" class="secondary-btn">Cancel</button>
+                    <button id="ok-confirm-btn" class="danger-btn">Reset</button>
+                </div>
+            </div>
+        </dialog>
+
+        <!-- New AI Tips Modal -->
+        <dialog id="ai-tips-modal" class="glass-card modal-content w-11/12 md:w-1/2 max-w-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-[--accent-color]">AI Study Tips</h2>
+                <button type="button" onclick="closeModal('ai-tips-modal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div id="ai-tips-content">
+                <p class="text-secondary text-center">Loading study tips...</p>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="closeModal('ai-tips-modal')" class="secondary-btn">Close</button>
+            </div>
+        </dialog>
+
+        <!-- New AI Analysis Modal -->
+        <dialog id="ai-analysis-modal" class="glass-card modal-content w-11/12 md:w-1/2 max-w-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-[--accent-color]">AI Progress Analysis</h2>
+                <button type="button" onclick="closeModal('ai-analysis-modal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div id="ai-analysis-content">
+                <p class="text-secondary text-center">Preparing your analysis...</p>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="closeModal('ai-analysis-modal')" class="secondary-btn">Close</button>
+            </div>
+        </dialog>
+
+        <!-- New AI Plan Modal -->
+        <dialog id="ai-plan-modal" class="glass-card modal-content w-11/12 md:w-1/2 max-w-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-[--accent-color]">AI Study Plan</h2>
+                <button type="button" onclick="closeModal('ai-plan-modal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div id="ai-plan-content">
+                <p class="text-secondary text-center">Creating a study plan...</p>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="closeModal('ai-plan-modal')" class="secondary-btn">Close</button>
+            </div>
+        </dialog>
+
+        <!-- Progress Analysis Modal -->
+        <dialog id="progress-analysis-modal" class="glass-card modal-content w-11/12 md:w-3/4 max-w-4xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-[--accent-color]">Progress Charts</h2>
+                <button type="button" onclick="closeModal('progress-analysis-modal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Daily Progress (Last 7 Days)</h3>
+                    <canvas id="daily-progress-chart" class="w-full h-64"></canvas>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Weekly Progress (Last 4 Weeks)</h3>
+                    <canvas id="weekly-progress-chart" class="w-full h-64"></canvas>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Monthly Progress (Last 6 Months)</h3>
+                    <canvas id="monthly-progress-chart" class="w-full h-64"></canvas>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Total Cards Breakdown</h3>
+                    <canvas id="total-cards-chart" class="w-full h-64"></canvas>
+                </div>
+            </div>
+        </dialog>
+
+        <!-- New Import/Export Modal -->
+        <dialog id="import-export-modal" class="glass-card modal-content w-11/12 md:w-1/2 max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-[--accent-color]">Import/Export Data</h2>
+                <button type="button" onclick="closeModal('import-export-modal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-lg font-semibold">Export</span>
+                    <div class="flex gap-2">
+                        <button onclick="exportJson()" class="apple-btn text-sm">JSON</button>
+                        <button onclick="exportCsv()" class="apple-btn text-sm">CSV</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-lg font-semibold">Import</span>
+                    <div class="flex gap-2">
+                        <input type="file" id="import-file-input-json" class="hidden" accept=".json" onchange="importJson(event); closeModal('import-export-modal');">
+                        <button onclick="document.getElementById('import-file-input-json').click()" class="apple-btn text-sm">JSON</button>
+                        <input type="file" id="import-file-input-csv" class="hidden" accept=".csv" onchange="importCsv(event); closeModal('import-export-modal');">
+                        <button onclick="document.getElementById('import-file-input-csv').click()" class="apple-btn text-sm">CSV</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+        
+        <div id="message-box" class="message-box hidden"></div>
+    </main>
+    <script>
+        // Global state object
+        let state = {
+            store: {},
+            selectedDate: new Date(),
+            isCalendarExpanded: false,
+            filter: {
+                text: '',
+                subject: '',
+                status: ''
+            },
+            sort: 'priority',
+            cardBeingDragged: null
+        };
+
+        const localStorageKey = 'studyCardsV1';
+        const today = new Date();
+        const todayISOString = today.toISOString().split('T')[0];
+        
+        // --- Drag and Drop State ---
+        let dragSrcEl = null;
+
+        // --- Utility Functions ---
+
+        /**
+         * Generates a consistent date key string for storage.
+         * @param {Date} date
+         * @returns {string} - YYYY-MM-DD format
+         */
+        function dateKey(date) {
+            const d = new Date(date);
+            if (isNaN(d.getTime())) {
+                return null;
+            }
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        /**
+         * Loads the state from localStorage.
+         */
+        function loadState() {
+            try {
+                const data = localStorage.getItem(localStorageKey);
+                state.store = data ? JSON.parse(data) : {};
+            } catch (e) {
+                console.error("Failed to load or parse study data from localStorage. Resetting.", e);
+                state.store = {};
+            }
+        }
+
+        /**
+         * Saves the current state to localStorage.
+         */
+        function saveState() {
+            localStorage.setItem(localStorageKey, JSON.stringify(state.store));
+        }
+
+        /**
+         * Escapes HTML to prevent XSS attacks when rendering user input.
+         * @param {string} unsafe - The string to escape.
+         * @returns {string} - The escaped string.
+         */
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        /**
+         * Closes a modal dialog.
+         * @param {string} modalId - The ID of the dialog element.
+         */
+        function closeModal(modalId) {
+            document.getElementById(modalId)?.close();
+        }
+
+        /**
+         * Displays a temporary message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success' or 'error'.
+         */
+        function showMessageBox(message, type = 'success') {
+            const box = document.getElementById('message-box');
+            box.textContent = message;
+            box.classList.remove('hidden');
+            box.style.backgroundColor = type === 'success' ? '#22c55e' : '#EF4444';
+            setTimeout(() => {
+                box.classList.add('hidden');
+            }, 3000);
+        }
+
+        /**
+         * Shows a confirmation modal with a message and a callback for the "OK" action.
+         * @param {string} message - The message to display.
+         * @param {Function} onConfirm - The function to call if the user confirms.
+         */
+        window.showConfirmationModal = (message, onConfirm) => {
+            const modal = document.getElementById('confirmation-modal');
+            document.getElementById('confirmation-message').textContent = message;
+
+            const okBtn = document.getElementById('ok-confirm-btn');
+            const cancelBtn = document.getElementById('cancel-confirm-btn');
+            
+            okBtn.onclick = () => { onConfirm(); modal.close(); };
+            cancelBtn.onclick = () => { modal.close(); };
+            
+            modal.showModal();
+        };
+
+        // --- Core Render & Logic Functions ---
+
+        /**
+         * Renders the entire application UI.
+         */
+        function renderAll() {
+            loadState();
+            renderMiniCalendar();
+            renderToolbar();
+            renderCards();
+        }
+
+        /**
+         * Generates the day grid for a given month and year.
+         * @param {number} year
+         * @param {number} month
+         * @returns {Array} An array of day objects for the calendar grid.
+         */
+        function generateMonthGrid(year, month) {
+            const firstDay = new Date(year, month, 1);
+            const startingDay = firstDay.getDay();
+            const numDays = new Date(year, month + 1, 0).getDate();
+            const grid = [];
+            const emptyDaysCount = startingDay === 0 ? 6 : startingDay - 1;
+
+            for (let i = 0; i < emptyDaysCount; i++) {
+                grid.push({ date: null });
+            }
+
+            for (let i = 1; i <= numDays; i++) {
+                const date = new Date(year, month, i);
+                const hasCards = (state.store[dateKey(date)]?.length || 0) > 0;
+                grid.push({ date, isToday: dateKey(date) === todayISOString, hasCards });
+            }
+
+            const remainingCells = 42 - grid.length;
+            for (let i = 0; i < remainingCells; i++) {
+                grid.push({ date: null });
+            }
+
+            return grid.slice(0, 42);
+        }
+
+        /**
+         * Renders the mini-calendar section.
+         */
+        function renderMiniCalendar() {
+            const monthDisplay = document.getElementById('month-display');
+            const calendarGrid = document.getElementById('calendar-grid');
+            const collapsedView = document.getElementById('collapsed-calendar-view');
+            const fullView = document.getElementById('full-calendar-view');
+            const toggleText = document.getElementById('calendar-toggle-text');
+            const collapseTitle = document.getElementById('calendar-collapse-title');
+
+            const currentMonth = state.selectedDate.getMonth();
+            const currentYear = state.selectedDate.getFullYear();
+            monthDisplay.textContent = state.selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            if (state.isCalendarExpanded) {
+                collapsedView.classList.add('hidden');
+                fullView.classList.remove('hidden');
+                toggleText.textContent = 'Hide Full Calendar';
+                collapseTitle.textContent = 'Full Calendar';
+
+                calendarGrid.innerHTML = '';
+                const daysInMonth = generateMonthGrid(currentYear, currentMonth);
+
+                daysInMonth.forEach(day => {
+                    const dayDiv = document.createElement('div');
+                    const dayDate = day.date;
+                    dayDiv.className = 'study-day-card';
+                    if (dayDate) {
+                        dayDiv.textContent = dayDate.getDate();
+                        dayDiv.setAttribute('data-date', dateKey(dayDate));
+                        if (dateKey(dayDate) === dateKey(state.selectedDate)) {
+                            dayDiv.classList.add('selected');
+                        }
+                        if (day.isToday) {
+                            dayDiv.classList.add('today');
+                        }
+                        if (day.hasCards) {
+                            dayDiv.classList.add('has-cards');
+                        }
+                        dayDiv.onclick = () => selectDay(dayDate);
+                    } else {
+                        dayDiv.classList.add('invisible');
+                    }
+                    calendarGrid.appendChild(dayDiv);
+                });
+            } else {
+                collapsedView.classList.remove('hidden');
+                fullView.classList.add('hidden');
+                toggleText.textContent = 'Show Full Calendar';
+                collapseTitle.textContent = 'Today\'s Study Plan';
+                
+                collapsedView.innerHTML = '';
+                const yesterday = new Date(state.selectedDate);
+                yesterday.setDate(state.selectedDate.getDate() - 1);
+                const tomorrow = new Date(state.selectedDate);
+                tomorrow.setDate(state.selectedDate.getDate() + 1);
+
+                [yesterday, state.selectedDate, tomorrow].forEach(day => {
+                    const dayDiv = document.createElement('div');
+                    const isSelected = dateKey(day) === dateKey(state.selectedDate);
+                    const hasCards = (state.store[dateKey(day)]?.length || 0) > 0;
+                    dayDiv.className = `study-day-card w-1/3 flex-grow ${isSelected ? 'selected' : ''} ${dateKey(day) === todayISOString ? 'today' : ''} ${hasCards ? 'has-cards' : ''}`;
+                    dayDiv.onclick = () => selectDay(day);
+
+                    dayDiv.innerHTML = `
+                        <div class="text-sm text-secondary">${day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                        <div class="text-3xl font-bold">${day.getDate()}</div>
+                    `;
+                    collapsedView.appendChild(dayDiv);
+                });
+            }
+        }
+
+        /**
+         * Toggles the calendar view between collapsed and expanded.
+         */
+        function toggleCalendar() {
+            state.isCalendarExpanded = !state.isCalendarExpanded;
+            renderMiniCalendar();
+        }
+
+        /**
+         * Moves the calendar to the previous month.
+         */
+        function prevMonth() {
+            const newDate = new Date(state.selectedDate.getFullYear(), state.selectedDate.getMonth() - 1, state.selectedDate.getDate());
+            state.selectedDate = newDate;
+            renderAll();
+        }
+
+        /**
+         * Moves the calendar to the next month.
+         */
+        function nextMonth() {
+            const newDate = new Date(state.selectedDate.getFullYear(), state.selectedDate.getMonth() + 1, state.selectedDate.getDate());
+            state.selectedDate = newDate;
+            renderAll();
+        }
+        
+        /**
+         * Moves the selected date to the previous day.
+         */
+        function prevDay() {
+            const newDate = new Date(state.selectedDate);
+            newDate.setDate(state.selectedDate.getDate() - 1);
+            state.selectedDate = newDate;
+            renderAll();
+        }
+        
+        /**
+         * Moves the selected date to the next day.
+         */
+        function nextDay() {
+            const newDate = new Date(state.selectedDate);
+            newDate.setDate(state.selectedDate.getDate() + 1);
+            state.selectedDate = newDate;
+            renderAll();
+        }
+
+        /**
+         * Sets the selected date to today.
+         */
+        function refreshToToday() {
+            state.selectedDate = new Date();
+            renderAll();
+        }
+
+        /**
+         * Selects a specific day and updates the UI.
+         * @param {Date} date - The date to select.
+         */
+        function selectDay(date) {
+            state.selectedDate = new Date(date);
+            state.isCalendarExpanded = false;
+            renderAll();
+        }
+
+        /**
+         * Renders the main toolbar.
+         */
+        function renderToolbar() {
+            const toolbarDate = document.getElementById('toolbar-date');
+            if (toolbarDate) {
+                toolbarDate.textContent = state.selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            }
+        }
+        
+        const handleSearch = (e) => {
+            state.filter.text = e.target.value;
+            renderCards();
+        };
+
+        const handleSort = (e) => {
+            state.sort = e.target.value;
+            renderCards();
+        };
+
+        /**
+         * Renders the study cards for the selected day.
+         */
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            if (!container) return;
+
+            const key = dateKey(state.selectedDate);
+            let cards = state.store[key] || [];
+
+            const query = state.filter.text.toLowerCase();
+            cards = cards.filter(card => {
+                const titleMatch = card.title?.toLowerCase().includes(query);
+                const tagsMatch = card.tags?.some(tag => tag.toLowerCase().includes(query));
+                const notesMatch = card.notes?.toLowerCase().includes(query);
+                return titleMatch || tagsMatch || notesMatch;
+            });
+
+            cards.sort((a, b) => {
+                if (state.sort === 'priority') return (b.priority || 0) - (a.priority || 0);
+                if (state.sort === 'durationMinutes') return (b.durationMinutes || 0) - (a.durationMinutes || 0);
+                if (state.sort === 'createdAt') return new Date(b.createdAt) - new Date(a.createdAt);
+                return 0;
+            });
+
+            if (cards.length === 0) {
+                container.innerHTML = `<div class="glass-card text-center p-8 text-secondary">
+                    <p class="text-lg font-semibold mb-2">No study cards for this day.</p>
+                    <p>Click "Add Card" to create your first one.</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = cards.map(card => {
+                const progress = card.checklist?.length ?
+                    Math.round((card.checklist.filter(c => c.done).length / card.checklist.length) * 100) :
+                    (card.status === 'done' ? 100 : 0);
+                
+                const cardClass = `study-card glass-card status-${card.status}`;
+                const progressClass = progress === 100 ? 'complete' : 'in-progress';
+                
+                const tagsHTML = card.tags.map(tag => `<span class="text-xs bg-[--card-bg] py-1 px-2 rounded-full">${escapeHtml(tag)}</span>`).join('');
+                
+                const checklistHTML = card.checklist.map((item, index) => `
+                    <label class="study-card-checklist-item">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleChecklistItem('${key}', '${card.id}', ${index})" class="hidden">
+                        <span class="w-4 h-4 rounded-full border border-white flex items-center justify-center transition-colors ${item.done ? 'bg-green-500' : ''}">
+                           ${item.done ? '<svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.704 4.153a.5.5 0 01.144.65l-6 11a.5.5 0 01-.898.156l-3.5-3.5a.5.5 0 01.707-.707L10.5 14.5l5.147-9.347a.5.5 0 01.707-.153z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>' : ''}
+                        </span>
+                        <span class="text-sm ${item.done ? 'line-through text-secondary' : ''}">${escapeHtml(item.text)}</span>
+                    </label>
+                `).join('');
+
+                return `
+                    <div id="card-${card.id}" class="${cardClass}" draggable="true" data-card-id="${card.id}">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-lg font-bold">${escapeHtml(card.title)}</h4>
+                                <p class="text-xs text-secondary mt-1">${escapeHtml(card.subject)}</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-secondary">
+                                <button onclick="openCardModal('${key}', '${card.id}')" class="secondary-btn py-1 px-2">Edit</button>
+                                <button onclick="deleteCard('${key}', '${card.id}')" class="danger-btn py-1 px-2">Delete</button>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-2">${tagsHTML}</div>
+                        <div class="my-4">
+                            <div class="study-progress-bar">
+                                <div class="progress-fill ${progressClass}" style="width: ${progress}%;"></div>
+                            </div>
+                            <p class="text-xs text-secondary mt-1">${progress}% Complete</p>
+                        </div>
+                        <div class="space-y-1">${checklistHTML}</div>
+                    </div>
+                `;
+            }).join('');
+            addDragAndDropListeners();
+        }
+
+        /**
+         * Opens the modal for adding or editing a study card.
+         * @param {string} dayKey - The date key for the card.
+         * @param {string} cardId - The ID of the card to edit (or null for a new card).
+         */
+        function openCardModal(dayKey = dateKey(state.selectedDate), cardId = null) {
+            const modal = document.getElementById('card-modal');
+            const form = document.getElementById('card-form');
+            form.reset();
+
+            document.getElementById('card-id').value = '';
+            document.getElementById('card-date').value = dayKey;
+            document.getElementById('checklist-container').innerHTML = '';
+            
+            let card = null;
+            if (cardId) {
+                card = state.store[dayKey]?.find(c => c.id === cardId);
+            }
+            
+            if (card) {
+                document.getElementById('card-id').value = card.id;
+                document.getElementById('card-title').value = card.title;
+                document.getElementById('card-subject').value = card.subject || '';
+                document.getElementById('card-tags').value = card.tags?.join(', ') || '';
+                document.getElementById('card-status').value = card.status;
+                document.getElementById('card-duration').value = card.durationMinutes || '';
+                document.getElementById('card-priority').value = card.priority || 3;
+                document.getElementById('card-resources').value = card.resources || '';
+                document.getElementById('card-notes').value = card.notes || '';
+                renderChecklist(card.checklist);
+            }
+
+            modal.showModal();
+        }
+
+        /**
+         * Renders the checklist items inside the modal.
+         * @param {Array} checklist - The checklist array to render.
+         */
+        function renderChecklist(checklist) {
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = '';
+            if (!checklist) return;
+            
+            checklist.forEach((item) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex items-center gap-2';
+                // The remove button now simply removes the DOM element. The form submission logic handles state.
+                itemDiv.innerHTML = `
+                    <input type="text" value="${escapeHtml(item.text)}" class="pro-input flex-grow text-sm">
+                    <button type="button" onclick="this.closest('div').remove()" class="danger-btn text-xs py-1 px-2">&times;</button>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+        
+        /**
+         * Resets the application data by clearing the state and local storage.
+         */
+        window.resetData = () => {
+            state.store = {};
+            saveState();
+            renderAll();
+        };
+
+        /**
+         * Opens the AI tips modal and fetches content.
+         */
+        window.openAITipsModal = async () => {
+            const modal = document.getElementById('ai-tips-modal');
+            const contentDiv = document.getElementById('ai-tips-content');
+            contentDiv.innerHTML = `<p class="text-secondary text-center">Loading study tips...</p>`;
+            modal.showModal();
+
+            const key = dateKey(state.selectedDate);
+            const cards = state.store[key] || [];
+            const subjects = [...new Set(cards.map(card => card.subject).filter(s => s))].join(', ');
+            
+            let userPrompt = "Generate a single, concise and encouraging study tip.";
+            if (subjects) {
+                userPrompt = `Generate a single, actionable study tip for the following subjects: ${subjects}.`;
+            }
+
+            const apiKey = "AIzaSyC6u5oqqPx7tzpGNgXhxIv1XovWXuwnjcY";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: "You are an expert study coach. Provide a short, actionable study tip related to the subjects provided. Do not use generic motivational phrases. For example, if the subject is 'Math', suggest a specific technique like 'practice with past exam questions'." }]
+                }
+            };
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Could not generate a tip. Please try again later.";
+                contentDiv.innerHTML = `<p class="text-lg text-white">${escapeHtml(text)}</p>`;
+            } catch (error) {
+                console.error("Failed to fetch AI tip:", error);
+                contentDiv.innerHTML = `<p class="text-red-400">Failed to load AI tips. Please check your network or try again.</p>`;
+            }
+        };
+
+        /**
+         * Opens the AI analysis modal and provides a summary of the day's progress.
+         */
+        window.openAIAnalysisModal = async () => {
+            const modal = document.getElementById('ai-analysis-modal');
+            const contentDiv = document.getElementById('ai-analysis-content');
+            contentDiv.innerHTML = `<p class="text-secondary text-center">Preparing your analysis...</p>`;
+            modal.showModal();
+
+            const key = dateKey(state.selectedDate);
+            const cards = state.store[key] || [];
+
+            if (cards.length === 0) {
+                contentDiv.innerHTML = `<p class="text-lg text-secondary">There are no study cards for this day to analyze. Add a few cards and try again!</p>`;
+                return;
+            }
+
+            const cardSummary = cards.map(card => {
+                const progress = card.checklist?.length ?
+                    Math.round((card.checklist.filter(c => c.done).length / card.checklist.length) * 100) :
+                    (card.status === 'done' ? 100 : 0);
+                return `Title: "${card.title}", Subject: "${card.subject}", Status: "${card.status}", Progress: ${progress}%`;
+            }).join('\n');
+
+            const userPrompt = `Analyze the following study cards for today and provide a concise, encouraging progress summary. Focus on tasks completed and still to do. Use bullet points.\n\n${cardSummary}`;
+            const apiKey = "AIzaSyC6u5oqqPx7tzpGNgXhxIv1XovWXuwnjcY";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: {
+                    parts: [{ text: "You are an AI assistant helping a student stay motivated. Your analysis should be brief, positive, and insightful." }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Could not generate analysis. Please try again later.";
+                contentDiv.innerHTML = `<p class="text-lg text-white whitespace-pre-wrap">${escapeHtml(text)}</p>`;
+            } catch (error) {
+                console.error("Failed to fetch AI analysis:", error);
+                contentDiv.innerHTML = `<p class="text-red-400">Failed to load AI analysis. Please check your network or try again.</p>`;
+            }
+        };
+        
+        /**
+         * Opens the AI plan modal and generates a study plan.
+         */
+        window.openAIPlanModal = async () => {
+            const modal = document.getElementById('ai-plan-modal');
+            const contentDiv = document.getElementById('ai-plan-content');
+            contentDiv.innerHTML = `<p class="text-secondary text-center">Creating a study plan...</p>`;
+            modal.showModal();
+
+            const key = dateKey(state.selectedDate);
+            const cards = state.store[key] || [];
+
+            if (cards.length === 0) {
+                contentDiv.innerHTML = `<p class="text-lg text-secondary">There are no study cards for this day. Add a few cards to get a personalized study plan!</p>`;
+                return;
+            }
+            
+            const cardSummary = cards.map(card => {
+                return `Title: "${card.title}", Subject: "${card.subject}", Priority: ${card.priority}, Status: "${card.status}"`;
+            }).join('\n');
+
+            const userPrompt = `You are a professional study coach. Based on the following study cards, create a concise, actionable study plan for the day. Group tasks by subject and prioritize them based on their priority level (1-5, where 5 is highest) and current status. Be encouraging and end with a summary of the most important tasks.\n\nToday's Cards:\n${cardSummary}`;
+            const apiKey = "AIzaSyC6u5oqqPx7tzpGNgXhxIv1XovWXuwnjcY";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: {
+                    parts: [{ text: "You are a professional study coach. Create a concise, actionable study plan. Group tasks by subject and prioritize them based on priority level and current status. Be encouraging and end with a summary of the most important tasks." }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Could not generate a study plan. Please try again later.";
+                contentDiv.innerHTML = `<p class="text-lg text-white whitespace-pre-wrap">${escapeHtml(text)}</p>`;
+            } catch (error) {
+                console.error("Failed to fetch AI plan:", error);
+                contentDiv.innerHTML = `<p class="text-red-400">Failed to load a study plan. Please check your network or try again.</p>`;
+            }
+        };
+
+        /**
+         * Opens the progress analysis modal and renders the charts.
+         */
+        window.openProgressAnalysisModal = () => {
+            const modal = document.getElementById('progress-analysis-modal');
+            modal.showModal();
+            renderProgressCharts();
+        };
+
+        /**
+         * Renders all progress charts.
+         */
+        function renderProgressCharts() {
+            renderDailyProgressChart();
+            renderWeeklyProgressChart();
+            renderMonthlyProgressChart();
+            renderTotalCardsChart();
+        }
+
+        /**
+         * Renders the daily progress chart for the last 7 days.
+         */
+        function renderDailyProgressChart() {
+            const canvas = document.getElementById('daily-progress-chart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const data = {};
+            const labels = [];
+            const today = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const key = dateKey(date);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                labels.push(dayName);
+                
+                const cards = state.store[key] || [];
+                const completed = cards.filter(card => card.status === 'done' || (card.checklist?.length > 0 && card.checklist.every(item => item.done))).length;
+                data[dayName] = completed;
+            }
+
+            const values = Object.values(data);
+            const maxValue = Math.max(...values, 1); // Avoid division by zero
+            const barWidth = canvas.width / (labels.length * 2);
+
+            ctx.fillStyle = '#E5E7EB';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Draw bars
+            labels.forEach((label, i) => {
+                const value = values[i];
+                const x = (i * canvas.width / labels.length) + barWidth;
+                const barHeight = (value / maxValue) * (canvas.height - 40);
+                const y = canvas.height - barHeight - 20;
+
+                ctx.fillStyle = 'var(--accent-color)';
+                ctx.fillRect(x - barWidth / 2, y, barWidth, barHeight);
+
+                // Draw labels
+                ctx.fillStyle = 'var(--secondary-text)';
+                ctx.fillText(label, x, canvas.height - 10);
+                ctx.fillText(value, x, y - 10);
+            });
+        }
+        
+        /**
+         * Renders the weekly progress chart for the last 4 weeks.
+         */
+        function renderWeeklyProgressChart() {
+            const canvas = document.getElementById('weekly-progress-chart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const weeklyData = new Array(4).fill(0);
+            const labels = [];
+            const today = new Date();
+            
+            // Calculate week ranges
+            for (let i = 3; i >= 0; i--) {
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - (i * 7) - today.getDay());
+                labels.push(`Week ${3 - i + 1}`);
+            }
+
+            for (const dateKey in state.store) {
+                const date = new Date(dateKey);
+                const daysDiff = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+                const weekIndex = Math.floor(daysDiff / 7);
+                
+                if (weekIndex >= 0 && weekIndex < 4) {
+                    const cards = state.store[dateKey] || [];
+                    const completed = cards.filter(card => card.status === 'done' || (card.checklist?.length > 0 && card.checklist.every(item => item.done))).length;
+                    weeklyData[3 - weekIndex] += completed;
+                }
+            }
+
+            const values = weeklyData;
+            const maxValue = Math.max(...values, 1);
+            const barWidth = canvas.width / (labels.length * 2);
+
+            ctx.fillStyle = '#E5E7EB';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            labels.forEach((label, i) => {
+                const value = values[i];
+                const x = (i * canvas.width / labels.length) + barWidth;
+                const barHeight = (value / maxValue) * (canvas.height - 40);
+                const y = canvas.height - barHeight - 20;
+
+                ctx.fillStyle = 'var(--accent-color)';
+                ctx.fillRect(x - barWidth / 2, y, barWidth, barHeight);
+
+                ctx.fillStyle = 'var(--secondary-text)';
+                ctx.fillText(label, x, canvas.height - 10);
+                ctx.fillText(value, x, y - 10);
+            });
+        }
+        
+        /**
+         * Renders the monthly progress chart for the last 6 months.
+         */
+        function renderMonthlyProgressChart() {
+             const canvas = document.getElementById('monthly-progress-chart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const monthlyData = {};
+            const labels = [];
+            const today = new Date();
+            
+            for (let i = 5; i >= 0; i--) {
+                const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const monthName = monthDate.toLocaleDateString('en-US', { month: 'short' });
+                const monthYear = `${monthName} ${monthDate.getFullYear()}`;
+                labels.push(monthYear);
+                monthlyData[monthYear] = 0;
+            }
+            
+            for (const dateKey in state.store) {
+                const date = new Date(dateKey);
+                const monthYear = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                
+                if (monthlyData.hasOwnProperty(monthYear)) {
+                    const cards = state.store[dateKey] || [];
+                    const completed = cards.filter(card => card.status === 'done' || (card.checklist?.length > 0 && card.checklist.every(item => item.done))).length;
+                    monthlyData[monthYear] += completed;
+                }
+            }
+
+            const values = Object.values(monthlyData);
+            const maxValue = Math.max(...values, 1);
+            const barWidth = canvas.width / (labels.length * 2);
+
+            ctx.fillStyle = '#E5E7EB';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            labels.forEach((label, i) => {
+                const value = values[i];
+                const x = (i * canvas.width / labels.length) + barWidth;
+                const barHeight = (value / maxValue) * (canvas.height - 40);
+                const y = canvas.height - barHeight - 20;
+
+                ctx.fillStyle = 'var(--accent-color)';
+                ctx.fillRect(x - barWidth / 2, y, barWidth, barHeight);
+
+                ctx.fillStyle = 'var(--secondary-text)';
+                ctx.fillText(label, x, canvas.height - 10);
+                ctx.fillText(value, x, y - 10);
+            });
+        }
+        
+        /**
+         * Renders a pie chart of total cards.
+         */
+        function renderTotalCardsChart() {
+            const canvas = document.getElementById('total-cards-chart');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let completed = 0;
+            let total = 0;
+
+            for (const date in state.store) {
+                state.store[date].forEach(card => {
+                    total++;
+                    if (card.status === 'done' || (card.checklist?.length > 0 && card.checklist.every(item => item.done))) {
+                        completed++;
+                    }
+                });
+            }
+
+            const incomplete = total - completed;
+            const data = [completed, incomplete];
+            const labels = ['Completed', 'Incomplete'];
+            const colors = ['var(--study-progress-bar-complete)', 'var(--accent-color)'];
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 20;
+            
+            let startAngle = 0;
+            
+            data.forEach((value, i) => {
+                const sliceAngle = (value / total) * 2 * Math.PI;
+                
+                ctx.fillStyle = colors[i];
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw labels
+                const labelX = centerX + (radius / 1.5) * Math.cos(startAngle + sliceAngle / 2);
+                const labelY = centerY + (radius / 1.5) * Math.sin(startAngle + sliceAngle / 2);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${labels[i]}`, labelX, labelY);
+                
+                startAngle += sliceAngle;
+            });
+
+            // Draw legend
+            ctx.fillStyle = 'white';
+            ctx.fillText(`Total: ${total}`, centerX, centerY + radius + 15);
+        }
+
+        // --- Drag and Drop Logic ---
+
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            dragSrcEl = e.target;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.target.dataset.cardId);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (e.target.closest('.study-card')) {
+                const targetCard = e.target.closest('.study-card');
+                if (targetCard !== dragSrcEl) {
+                    const rect = targetCard.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) / rect.height > 0.5;
+                    const position = next ? 'afterend' : 'beforebegin';
+                    
+                    const container = document.getElementById('cards-container');
+                    const draggedElement = document.querySelector('.dragging');
+                    const targetElement = targetCard;
+
+                    const allCards = Array.from(container.children).filter(el => el.classList.contains('study-card'));
+                    const draggedIndex = allCards.indexOf(draggedElement);
+                    const targetIndex = allCards.indexOf(targetElement);
+
+                    if (draggedIndex < targetIndex && next) {
+                        targetElement.parentNode.insertBefore(draggedElement, targetElement.nextSibling);
+                    } else if (draggedIndex > targetIndex && !next) {
+                         targetElement.parentNode.insertBefore(draggedElement, targetElement);
+                    }
+                    else if(draggedIndex > targetIndex && next) {
+                        targetElement.parentNode.insertBefore(draggedElement, targetElement.nextSibling);
+                    }
+                    else if(draggedIndex < targetIndex && !next) {
+                        targetElement.parentNode.insertBefore(draggedElement, targetElement);
+                    }
+                }
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            
+            const fromCardId = dragSrcEl.dataset.cardId;
+            const toCardEl = e.target.closest('.study-card');
+
+            if (!toCardEl || fromCardId === toCardEl.dataset.cardId) {
+                dragSrcEl.classList.remove('dragging');
+                return;
+            }
+
+            const fromKey = dateKey(state.selectedDate);
+            const toKey = fromKey;
+
+            const fromCards = state.store[fromKey];
+            const toCards = state.store[toKey];
+
+            const fromIndex = fromCards.findIndex(c => c.id === fromCardId);
+            const toIndex = Array.from(document.getElementById('cards-container').children).findIndex(el => el.dataset.cardId === toCardEl.dataset.cardId);
+            
+            const [draggedCard] = fromCards.splice(fromIndex, 1);
+            
+            toCards.splice(toIndex, 0, draggedCard);
+            
+            state.store[fromKey] = fromCards;
+            state.store[toKey] = toCards;
+
+            saveState();
+            renderAll();
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function addDragAndDropListeners() {
+            const container = document.getElementById('cards-container');
+            container.addEventListener('dragover', handleDragOver);
+            container.addEventListener('drop', handleDrop);
+            
+            document.querySelectorAll('.study-card').forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+        }
+
+
+        // --- Event Listeners and Initializers ---
+        
+        document.getElementById('add-checklist-item')?.addEventListener('click', () => {
+            const container = document.getElementById('checklist-container');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'flex items-center gap-2';
+            itemDiv.innerHTML = `
+                <input type="text" placeholder="New checklist item" class="pro-input flex-grow text-sm">
+                <button type="button" onclick="this.closest('div').remove()" class="danger-btn text-xs py-1 px-2">&times;</button>
+            `;
+            container.appendChild(itemDiv);
+        });
+
+        document.getElementById('card-form')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const isEditing = document.getElementById('card-id').value !== '';
+            const dayKey = document.getElementById('card-date').value;
+            const cardId = document.getElementById('card-id').value || `sc_${Date.now()}`;
+            const now = new Date().toISOString();
+            
+            // Collect checklist items from the form inputs
+            const checklistItems = Array.from(document.querySelectorAll('#checklist-container input')).map(el => {
+                // Find existing item to preserve 'done' status
+                const existingCard = state.store[dayKey]?.find(c => c.id === cardId);
+                const existingItem = existingCard?.checklist.find(item => item.text === el.value) || {done: false};
+                return { text: el.value, done: existingItem.done };
+            });
+
+            const newCard = {
+                id: cardId,
+                title: document.getElementById('card-title').value,
+                subject: document.getElementById('card-subject').value,
+                tags: document.getElementById('card-tags').value.split(',').map(s => s.trim()).filter(s => s),
+                status: document.getElementById('card-status').value,
+                durationMinutes: parseInt(document.getElementById('card-duration').value) || 0,
+                priority: parseInt(document.getElementById('card-priority').value) || 3,
+                resources: document.getElementById('card-resources').value,
+                notes: document.getElementById('card-notes').value,
+                checklist: checklistItems,
+                createdAt: isEditing ? state.store[dayKey]?.find(c => c.id === cardId)?.createdAt : now,
+                updatedAt: now,
+            };
+            
+            if (!state.store[dayKey]) {
+                state.store[dayKey] = [];
+            }
+            
+            if (isEditing) {
+                state.store[dayKey] = state.store[dayKey].map(c => c.id === cardId ? newCard : c);
+            } else {
+                state.store[dayKey].push(newCard);
+            }
+            
+            saveState();
+            closeModal('card-modal');
+            renderAll();
+        });
+
+        /**
+         * Toggles the completion status of a checklist item.
+         * @param {string} dayKey
+         * @param {string} cardId
+         * @param {number} index - The index of the checklist item.
+         */
+        window.toggleChecklistItem = (dayKey, cardId, index) => {
+            const card = state.store[dayKey]?.find(c => c.id === cardId);
+            if (card && card.checklist?.[index]) {
+                card.checklist[index].done = !card.checklist[index].done;
+                saveState();
+                renderAll();
+            }
+        };
+
+        /**
+         * Deletes a study card.
+         * @param {string} dayKey
+         * @param {string} cardId
+         */
+        window.deleteCard = (dayKey, cardId) => {
+            state.store[dayKey] = state.store[dayKey].filter(c => c.id !== cardId);
+            if (state.store[dayKey].length === 0) {
+                delete state.store[dayKey];
+            }
+            saveState();
+            renderAll();
+        };
+
+        /**
+         * Opens the modal for selecting import/export type.
+         */
+        window.openImportExportModal = () => {
+            const modal = document.getElementById('import-export-modal');
+            modal.showModal();
+        };
+
+        /**
+         * Exports the study cards as a JSON file.
+         */
+        window.exportJson = () => {
+            const dataStr = JSON.stringify(state.store, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `study_cards_backup_${todayISOString}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        /**
+         * Imports study cards from a JSON file.
+         * @param {Event} event
+         */
+        window.importJson = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (typeof importedData === 'object' && !Array.isArray(importedData)) {
+                        const importedDates = Object.keys(importedData);
+                        state.store = { ...state.store, ...importedData };
+                        saveState();
+                        renderAll();
+                        showMessageBox(`Successfully imported JSON data for dates: ${importedDates.join(', ')}`);
+                    } else {
+                        console.error("Invalid JSON format for import.");
+                        showMessageBox("Import failed: Invalid JSON format.", 'error');
+                    }
+                } catch (err) {
+                    console.error("Failed to read or parse imported JSON file.", err);
+                    showMessageBox("Import failed: Could not read file.", 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = null;
+        };
+        
+        /**
+         * Exports all study data to a CSV file.
+         */
+        window.exportCsv = () => {
+            const allCards = [];
+            for (const date in state.store) {
+                state.store[date].forEach(card => {
+                    allCards.push({ date, ...card });
+                });
+            }
+
+            if (allCards.length === 0) {
+                console.log("No data to export.");
+                return;
+            }
+
+            const header = [
+                "date", "id", "title", "subject", "tags", "status",
+                "durationMinutes", "priority", "resources", "notes", "checklist",
+                "createdAt", "updatedAt"
+            ];
+
+            const csvRows = allCards.map(card => {
+                const tagsCsv = (card.tags || []).map(t => formatCsvCell(t)).join(';');
+                const checklistCsv = (card.checklist || []).map(item =>
+                    formatCsvCell(`${item.text}:${item.done}`)
+                ).join(';');
+
+                return [
+                    formatCsvCell(card.date),
+                    formatCsvCell(card.id),
+                    formatCsvCell(card.title),
+                    formatCsvCell(card.subject),
+                    formatCsvCell(tagsCsv),
+                    formatCsvCell(card.status),
+                    card.durationMinutes,
+                    card.priority,
+                    formatCsvCell(card.resources),
+                    formatCsvCell(card.notes),
+                    formatCsvCell(checklistCsv),
+                    formatCsvCell(card.createdAt),
+                    formatCsvCell(card.updatedAt)
+                ].join(',');
+            });
+
+            const csvContent = [header.join(','), ...csvRows].join('\n');
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `study_cards_backup_${todayISOString}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+        
+        /**
+         * Imports study data from a CSV file.
+         * @param {Event} event
+         */
+        window.importCsv = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const csvText = e.target.result;
+                    const rows = csvText.trim().split('\n');
+                    const header = rows[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                    const importedDates = new Set();
+                    
+                    for (let i = 1; i < rows.length; i++) {
+                        const values = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Simple regex to handle commas in quotes
+                        const card = {};
+                        for (let j = 0; j < header.length; j++) {
+                            let value = values[j] ? values[j].trim().replace(/^"|"$/g, '').replace(/""/g, '"') : '';
+                            const key = header[j];
+                            
+                            if (key === 'tags') {
+                                card[key] = value.split(';').map(t => t.trim()).filter(t => t);
+                            } else if (key === 'checklist') {
+                                card[key] = value.split(';').filter(Boolean).map(item => {
+                                    const [text, done] = item.split(':');
+                                    return { text: text.trim(), done: done === 'true' };
+                                });
+                            } else if (key === 'durationMinutes' || key === 'priority') {
+                                card[key] = parseInt(value, 10) || 0;
+                            } else {
+                                card[key] = value;
+                            }
+                        }
+                        
+                        const dayKey = card.date;
+                        if (dayKey) {
+                            importedDates.add(dayKey);
+                            if (!state.store[dayKey]) {
+                                state.store[dayKey] = [];
+                            }
+                            // Check if a card with the same ID already exists and update it
+                            const existingCardIndex = state.store[dayKey].findIndex(c => c.id === card.id);
+                            if (existingCardIndex > -1) {
+                                state.store[dayKey][existingCardIndex] = card;
+                            } else {
+                                state.store[dayKey].push(card);
+                            }
+                        }
+                    }
+                    saveState();
+                    renderAll();
+                    showMessageBox(`Successfully imported CSV data for dates: ${Array.from(importedDates).join(', ')}`);
+                } catch (err) {
+                    console.error("Failed to read or parse imported CSV file.", err);
+                    showMessageBox("Import failed: Could not read file.", 'error');
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        /**
+         * Helper function to format a value for CSV.
+         * @param {*} value - The value to format.
+         * @returns {string} The formatted CSV cell.
+         */
+        function formatCsvCell(value) {
+            if (value === null || value === undefined) {
+                return '';
+            }
+            const stringValue = String(value);
+            // Escape double quotes by doubling them, and then wrap the whole string in quotes.
+            return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+
+        // Initial render call and event listeners on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+            const modal = document.getElementById('card-modal');
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal('card-modal');
+                }
+            });
+            modal.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal('card-modal');
+                }
+            });
+            // Attach toolbar event listeners once
+            document.getElementById('search-cards')?.addEventListener('input', handleSearch);
+            document.getElementById('sort-cards')?.addEventListener('change', handleSort);
+        });
+    </script>
+</body>
+</html>

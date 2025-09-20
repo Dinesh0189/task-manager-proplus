@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="pro-plus-theme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- CORE STYLES --- */
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* --- THEME DEFINITIONS --- */
+        [data-theme='pro-plus-theme'] {
+            --bg-primary: #1b1b1b;
+            --bg-secondary: #2c2c2c;
+            --sidebar-bg: rgba(27, 27, 27, 0.8);
+            --card-bg: rgba(44, 44, 44, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f5f5f7;
+            --text-secondary: #a1a1a6;
+            --text-header: #FFFFFF;
+            --accent-color: #38bdf8;
+            --accent-color-secondary: #a855f7;
+            --accent-glow: rgba(56, 189, 248, 0.2);
+            --danger-color: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.2);
+            --warning-color: #facc15;
+        }
+
+        /* --- LAYOUT & NAVIGATION (MOBILE FIRST) --- */
+        .main-content-base {
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        /* --- GENERAL COMPONENTS --- */
+        .glass-card {
+            background-color: var(--card-bg); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border); 
+            border-image: linear-gradient(to bottom right, var(--card-border), transparent 50%) 1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+            animation: fadeIn 0.5s ease-out forwards; 
+            animation-delay: var(--animation-delay, 0s); 
+            opacity: 0; display: flex; flex-direction: column;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+        }
+        .glass-card:hover:not(.no-hover) { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+            border-color: var(--accent-color);
+        }
+        .pro-input, select, textarea.pro-input {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--card-border); 
+            color: var(--text-primary);
+            transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s; 
+            border-radius: 10px; 
+            padding: 0.75rem;
+        }
+        .pro-input:focus, select:focus, textarea.pro-input:focus { 
+            outline: none; 
+            border-color: var(--accent-color); 
+            box-shadow: 0 0 0 2px var(--accent-glow);
+            background-color: var(--bg-secondary);
+        }
+        .pro-btn, .danger-btn, .secondary-btn { 
+            position: relative; 
+            overflow: hidden; 
+            transition: all 0.3s ease; 
+            z-index: 1; 
+            border-radius: 10px; 
+            padding: 0.75rem 1.5rem; 
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: normal;
+            cursor: pointer;
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
+            border: none;
+        }
+        .pro-btn { background-color: var(--accent-color); color: white; }
+        .danger-btn { background-color: var(--danger-color); color: white; }
+        .secondary-btn { background-color: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-primary); }
+        .pro-btn:hover, .danger-btn:hover { 
+            transform: translateY(-1px); 
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px, rgba(0, 0, 0, 0.06) 0px 2px 4px;
+            filter: brightness(1.1); 
+        }
+        .secondary-btn:hover { 
+            border-color: var(--accent-color); 
+            color: var(--accent-color); 
+            transform: translateY(-1px); 
+            background-color: var(--card-bg); 
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 8px, rgba(0, 0, 0, 0.06) 0px 2px 4px;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        
+        /* --- MODALS --- */
+        .modal-container { 
+            position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; 
+            padding: 1rem; background-color: rgba(0,0,0,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; 
+        }
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+        }
+        .modal-container.visible { opacity: 1; visibility: visible; }
+        .modal-container.visible .modal-content {
+            animation: slideIn 0.4s ease-out forwards;
+        }
+        .modal-content { 
+            position: relative;
+            z-index: 51;
+            width: 100%; max-width: 500px; padding: 1.5rem; border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* --- PROJECT TRACKER & DEADLINES --- */
+        .project-progress-bar { 
+            width: 100%; background-color: var(--card-border); border-radius: 99px; height: 8px; overflow: hidden; 
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .project-progress-inner { 
+            background: var(--accent-color);
+            height: 100%; border-radius: 99px; transition: width 0.5s ease; 
+            box-shadow: none;
+        }
+        .deadline-warning { border-left: 3px solid var(--warning-color); }
+        .deadline-overdue { border-left: 3px solid var(--danger-color); }
+        .priority-indicator {
+            width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; flex-shrink: 0;
+        }
+        .priority-1 { background-color: #0071e3; } /* Low - Blue */
+        .priority-2 { background-color: #ff9500; } /* Medium - Orange */
+        .priority-3 { background-color: #ff3b30; } /* High - Red */
+
+        /* --- HABITS & CHECKBOX --- */
+        .checkbox-custom { width: 18px; height: 18px; border: 2px solid var(--card-border); border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; cursor: pointer; flex-shrink: 0; }
+        .checkbox-custom.checked { background-color: var(--accent-color); border-color: var(--accent-color); }
+        .checkbox-custom::after { content: '✓'; color: var(--bg-primary); font-weight: bold; font-size: 12px; opacity: 0; transform: scale(0.5); transition: all 0.2s ease; }
+        .checkbox-custom.checked::after { opacity: 1; transform: scale(1); }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- BACKGROUND EFFECTS -->
+    <div class="background-grid"></div>
+    <div class="background-glow"></div>
+    <!-- Dynamic backgrounds will be injected here by JS -->
+
+    <!-- MAIN PRO PLUS LAYOUT -->
+    <div id="pro-plus-layout" class="flex h-screen">
+        <!-- Main Content -->
+        <main id="main-content" class="main-content-base w-full overflow-y-auto">
+            <header class="flex flex-wrap items-center justify-between mb-6 gap-4">
+                <a href="index.html" class="pro-btn py-2 px-4 rounded-full text-sm">← Back to Dashboard</a>
+                <h1 class="text-3xl sm:text-4xl font-semibold text-header tracking-tight">Projects</h1>
+                <div class="flex items-center gap-2">
+                    <select id="project-status-filter" onchange="handleFilterSortChange()" class="pro-input text-sm">
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                    <select id="project-sort" onchange="handleFilterSortChange()" class="pro-input text-sm">
+                        <option value="deadline">Sort by Deadline</option>
+                        <option value="name_asc">Sort by Name (A-Z)</option>
+                        <option value="name_desc">Sort by Name (Z-A)</option>
+                        <option value="progress">Sort by Progress</option>
+                    </select>
+                </div>
+                <button onclick="openModal('project-modal')" class="pro-btn">New Project</button>
+            </header>
+            <div id="projects-container" class="space-y-6"></div>
+        </main>
+    </div>
+    
+    <!-- User ID display -->
+    <div id="user-id-display" class="fixed bottom-4 right-4 text-xs text-secondary bg-[--card-bg] p-2 rounded-lg opacity-70 hidden"></div>
+
+    <!-- MODALS -->
+    <div id="project-modal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="glass-card modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="project-modal-title" class="text-2xl font-bold text-[--accent-color]">New Project</h2>
+                <button onclick="closeModal('project-modal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <form id="project-form" class="space-y-4">
+                <input type="hidden" id="project-id">
+                <input type="text" id="project-name" placeholder="Project Name" class="pro-input w-full" required>
+                <textarea id="project-description" placeholder="Project Description..." class="pro-input w-full h-24" required></textarea>
+                <div class="flex items-center gap-4">
+                    <label class="text-sm">Deadline:</label>
+                    <input type="date" id="project-deadline" class="pro-input flex-grow" required>
+                </div>
+                <button type="submit" class="pro-btn font-semibold w-full">Save Project</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="task-modal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="glass-card modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-[--accent-color]">New Task</h2>
+                <button onclick="closeModal('task-modal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <form id="task-form" class="space-y-4">
+                <input type="hidden" id="task-project-id">
+                <input type="text" id="task-text" placeholder="Task description..." class="pro-input w-full" required>
+                <div class="flex items-center gap-4">
+                    <label class="text-sm">Priority:</label>
+                    <select id="task-priority" class="pro-input flex-grow" required>
+                        <option value="1">Low</option>
+                        <option value="2" selected>Medium</option>
+                        <option value="3">High</option>
+                    </select>
+                </div>
+                <button type="submit" class="pro-btn font-semibold w-full">Add Task</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="confirmation-modal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="glass-card modal-content text-center">
+            <h2 id="confirmation-title" class="text-2xl font-bold mb-4 text-[--accent-color]">Confirm Action</h2>
+            <p id="confirmation-message" class="text-secondary mb-6">This action cannot be undone.</p>
+            <div id="confirmation-buttons" class="flex justify-center gap-4">
+                <!-- Buttons are dynamically inserted here by JS -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom alert modal to replace window.alert -->
+    <div id="alert-modal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="glass-card modal-content">
+            <div class="flex items-start mb-4">
+                <svg id="alert-icon" class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M8.257 3.482a.75.75 0 011.486 0l3.085 6.014c.143.279.213.593.213.904v2.09a.75.75 0 01-1.5 0v-2.09c0-.203-.049-.395-.14-.567l-2.885-5.612a.75.75 0 01-.14-.567zM10 16a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                </svg>
+                <h2 id="alert-title" class="text-lg font-bold">Information</h2>
+            </div>
+            <p id="alert-message" class="text-secondary mb-6"></p>
+            <div class="flex justify-center">
+                <button id="alert-ok-btn" class="pro-btn">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // --- PROJECTS SCRIPT ---
+        // Encapsulate all logic to prevent global pollution
+        (function() {
+
+            let proData = {};
+
+            const defaultProData = {
+                projects: [
+                    { id: `proj-1`, name: "Personal Website", dateAdded: "2025-09-01", status: 'active', description: "Create a new portfolio using Three.js and modern CSS.", deadline: "2025-10-31", tasks: [{ id: `task-1`, text: "Design wireframes", done: true, priority: 3 }, { id: `task-2`, text: "Develop landing page", done: false, priority: 2 }] },
+                    { id: `proj-2`, name: "AI Productivity App", dateAdded: "2025-09-10", status: 'active', description: "Build a prototype for a voice-controlled dashboard.", deadline: "2025-12-15", tasks: [{ id: `task-3`, text: "Setup database schema", done: true, priority: 3 }, { id: `task-4`, text: "Implement voice commands", done: false, priority: 2 }, { id: `task-5`, text: "Deploy to test server", done: false, priority: 1 }] }
+                ],
+            };
+
+            function escapeHtml(unsafe) {
+                // Ensure the input is a string before calling replace
+                if (typeof unsafe !== 'string' || !unsafe) {
+                    return '';
+                }
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+
+            // --- DATA PERSISTENCE (LOCAL STORAGE) ---
+            function saveData() {
+                try {
+                    localStorage.setItem('proPlusData', JSON.stringify(proData));
+                    console.log("Data saved to localStorage successfully.");
+                } catch (e) {
+                    console.error("Error saving data to localStorage:", e);
+                }
+            }
+
+            function loadData() {
+                try {
+                    const localData = localStorage.getItem('proPlusData');
+                    if (localData) {
+                        proData = JSON.parse(localData);
+                        console.log("Loaded data from local backup.");
+                    } else {
+                        proData = JSON.parse(JSON.stringify(defaultProData));
+                        console.log("No local backup found. Initializing with default data.");
+                    }
+                } catch (e) {
+                    console.error("Failed to load or parse local data. Using default data.", e);
+                    proData = JSON.parse(JSON.stringify(defaultProData));
+                }
+            }
+            
+            // --- INITIALIZATION ---
+            document.addEventListener('DOMContentLoaded', () => {
+                loadData();
+                bindUniversalEventListeners();
+                renderProjects();
+            });
+
+            function showUserAlert(message, type = "info") {
+                const modalId = 'alert-modal';
+                const modal = document.getElementById(modalId);
+                if (!modal) return;
+                
+                const titleEl = document.getElementById('alert-title');
+                const messageEl = document.getElementById('alert-message');
+                const iconEl = document.getElementById('alert-icon');
+                
+                if (titleEl) titleEl.textContent = type === "danger" ? "Error" : (type === "warning" ? "Warning" : "Information");
+                if (messageEl) messageEl.textContent = message;
+
+                if (iconEl) {
+                    iconEl.className = 'w-6 h-6 mr-2';
+                    if (type === "danger") iconEl.classList.add('text-red-500');
+                    else if (type === "warning") iconEl.classList.add('text-yellow-500');
+                    else iconEl.classList.add('text-blue-500');
+                }
+
+                modal.classList.add('visible');
+            }
+
+            function bindUniversalEventListeners() {
+                const on = (id, evt, handler) => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener(evt, handler);
+                };
+
+                on('project-form', 'submit', handleProjectFormSubmit);
+                on('task-form', 'submit', handleTaskFormSubmit);
+                on('alert-ok-btn', 'click', () => closeModal('alert-modal'));
+                
+                document.getElementById('confirmation-modal')?.addEventListener('click', (e) => {
+                    const target = e.target.closest('button');
+                    if (!target) return;
+            
+                    if (target.id === 'confirm-btn' && window.confirmAction) {
+                        window.confirmAction();
+                        closeModal('confirmation-modal');
+                    }
+                    if (target.id === 'cancel-btn') {
+                        closeModal('confirmation-modal');
+                    }
+                });
+
+                document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) {
+                            closeModal(overlay.closest('.modal-container').id);
+                        }
+                    });
+                });
+
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        document.querySelectorAll('.modal-container.visible').forEach(modal => {
+                            closeModal(modal.id);
+                        });
+                    }
+                });
+            }
+
+            // --- PROJECTS PAGE ---
+            function updateAndRefreshProjects() {
+                if (!Array.isArray(proData.projects)) proData.projects = [];
+                handleFilterSortChange();
+                saveData(); // Save data to localStorage after every change
+            }
+
+            function renderProjects() {
+                handleFilterSortChange();
+            }
+
+            window.handleFilterSortChange = () => {
+                const container = document.getElementById('projects-container');
+                if (!container) return;
+
+                const filterEl = document.getElementById('project-status-filter');
+                const sortEl = document.getElementById('project-sort');
+
+                const filterValue = filterEl ? filterEl.value : 'active';
+                const sortValue = sortEl ? sortEl.value : 'deadline';
+                
+                if (!Array.isArray(proData.projects)) proData.projects = [];
+
+                let projectsToDisplay = proData.projects.filter(p => {
+                    const progress = p.tasks && p.tasks.length > 0 ? (p.tasks.filter(t => t.done).length / p.tasks.length) * 100 : 0;
+                    if (filterValue === 'completed') {
+                        return progress === 100 && p.status === 'active';
+                    }
+                    return p.status === filterValue;
+                });
+
+                projectsToDisplay.sort((a, b) => {
+                    switch (sortValue) {
+                        case 'deadline':
+                            const dateA = a.deadline ? new Date(a.deadline) : new Date(8640000000000000);
+                            const dateB = b.deadline ? new Date(b.deadline) : new Date(8640000000000000);
+                            return dateA - dateB;
+                        case 'name_asc': return a.name.localeCompare(b.name);
+                        case 'name_desc': return b.name.localeCompare(a.name);
+                        case 'progress': {
+                            const progressA = a.tasks && a.tasks.length > 0 ? (a.tasks.filter(t => t.done).length / a.tasks.length) : 0;
+                            const progressB = b.tasks && b.tasks.length > 0 ? (b.tasks.filter(t => t.done).length / b.tasks.length) : 0;
+                            return progressB - progressA;
+                        }
+                        default: return 0;
+                    }
+                });
+
+                container.innerHTML = '';
+                if (projectsToDisplay.length === 0) {
+                    container.innerHTML = `<div class="glass-card text-center p-8"><p class="text-secondary">No projects match the current filter.</p></div>`;
+                } else {
+                    projectsToDisplay.forEach((p, index) => container.appendChild(createProjectCard(p, index)));
+                }
+            }
+
+            function createProjectCard(project, index) {
+                const card = document.createElement('div');
+                card.className = 'glass-card p-6';
+                card.style.setProperty('--animation-delay', `${index * 100}ms`);
+
+                const deadline = new Date(project.deadline);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const timeDiff = deadline.getTime() - today.getTime();
+                const dayDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                if (project.status === 'active' && dayDiff < 0) {
+                    card.classList.add('deadline-overdue');
+                } else if (project.status === 'active' && dayDiff <= 7) {
+                    card.classList.add('deadline-warning');
+                }
+
+                const progress = project.tasks && project.tasks.length > 0 ? Math.round((project.tasks.filter(t => t.done).length / project.tasks.length) * 100) : 0;
+
+                const tasksHTML = project.tasks && project.tasks.sort((a, b) => a.priority - b.priority).map(task => `
+                    <div class="flex items-center justify-between py-2 border-b border-[--card-border]">
+                        <label for="${escapeHtml(task.id)}" class="flex items-center cursor-pointer text-sm">
+                            <input type="checkbox" id="${escapeHtml(task.id)}" ${task.done ? 'checked' : ''} onchange="toggleProjectTask('${escapeHtml(project.id)}', '${escapeHtml(task.id)}')" class="hidden">
+                            <span class="checkbox-custom ${task.done ? 'checked' : ''}"></span>
+                            <span class="priority-indicator priority-${escapeHtml(String(task.priority))}"></span>
+                            <span class="${task.done ? 'line-through text-secondary' : ''}">${escapeHtml(task.text)}</span>
+                        </label>
+                    </div>
+                `).join('');
+
+                let actionButtons = '';
+                if (project.status === 'active') {
+                    actionButtons += `<button onclick='openModal("project-modal", proData.projects.find(p => p.id === "${escapeHtml(project.id)}"))' class="secondary-btn text-xs py-1 px-2">Edit</button>`;
+                    if (progress === 100) {
+                        actionButtons += `<button onclick="archiveProject('${escapeHtml(project.id)}')" class="secondary-btn text-xs py-1 px-2 ml-2">Archive</button>`;
+                    }
+                    actionButtons += `<button onclick="showConfirmation({ title: 'Delete Project?', message: 'Are you sure you want to delete this project?', confirmText: 'Delete' }, () => deleteProject('${escapeHtml(project.id)}'))" class="danger-btn text-xs py-1 px-2 ml-2">Delete</button>`;
+                } else if (project.status === 'archived') {
+                    actionButtons = `<button onclick="unarchiveProject('${escapeHtml(project.id)}')" class="secondary-btn text-xs py-1 px-2">Restore</button>
+                                         <button onclick="showConfirmation({ title: 'Delete Permanently?', message: 'This will permanently delete the project and its tasks. This is irreversible.', confirmText: 'Delete' }, () => deleteProject('${escapeHtml(project.id)}'))" class="danger-btn text-xs py-1 px-2 ml-2">Delete Permanently</button>`;
+                }
+
+                const dateAdded = project.dateAdded ? new Date(project.dateAdded).toLocaleDateString() : 'N/A';
+                const remainingDays = dayDiff >= 0 ? `${dayDiff} days remaining` : 'Overdue';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-semibold text-header tracking-tight">${escapeHtml(project.name)}</h3>
+                            <p class="text-sm text-secondary mt-1">${escapeHtml(project.description)}</p>
+                            <div class="flex items-center gap-4 mt-2 text-xs text-secondary">
+                                <p>Added: ${dateAdded}</p>
+                                <p>Deadline: ${escapeHtml(project.deadline)} (${remainingDays})</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            ${actionButtons}
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <p class="text-sm">Progress (${project.tasks.filter(t => t.done).length}/${project.tasks.length})</p>
+                            <p class="text-sm font-semibold">${progress}%</p>
+                        </div>
+                        <div class="project-progress-bar"><div class="project-progress-inner" style="width: ${progress}%"></div></div>
+                    </div>
+                    <div class="mt-4 space-y-2">${project.status === 'active' ? tasksHTML : '<p class="text-sm text-secondary text-center">Project is archived. Restore to see tasks.</p>'}</div>
+                    ${project.status === 'active' ? `<button onclick="openModal('task-modal', { projectId: '${escapeHtml(project.id)}' })" class="secondary-btn w-full mt-4 text-sm">Add Task</button>` : ''}
+                `;
+                return card;
+            }
+
+            // --- FORM SUBMISSIONS ---
+            function handleProjectFormSubmit(e) {
+                e.preventDefault();
+                const idInput = document.getElementById('project-id');
+                const nameInput = document.getElementById('project-name');
+                const descInput = document.getElementById('project-description');
+                const deadlineInput = document.getElementById('project-deadline');
+                
+                if (!idInput || !nameInput || !descInput || !deadlineInput) {
+                    console.error("Required form elements not found.");
+                    showUserAlert("A required form element is missing. Please refresh the page.", "danger");
+                    return;
+                }
+
+                const id = idInput.value.trim();
+                const finalId = id !== "" ? id : `proj-${Date.now()}`;
+                const existingProject = proData.projects.find(p => p.id === finalId);
+
+                const newProject = {
+                    id: finalId,
+                    name: nameInput.value,
+                    description: descInput.value,
+                    deadline: deadlineInput.value,
+                    dateAdded: existingProject?.dateAdded || new Date().toISOString().split('T')[0],
+                    status: existingProject?.status || 'active',
+                    tasks: existingProject?.tasks || []
+                };
+                
+                if (existingProject) {
+                    proData.projects = proData.projects.map(p => p.id === finalId ? newProject : p);
+                } else {
+                    if (!Array.isArray(proData.projects)) proData.projects = [];
+                    proData.projects.push(newProject);
+                }
+                
+                updateAndRefreshProjects();
+                closeModal('project-modal');
+            }
+
+            function handleTaskFormSubmit(e) {
+                e.preventDefault();
+                const projectIdInput = document.getElementById('task-project-id');
+                const taskTextInput = document.getElementById('task-text');
+                const taskPriorityInput = document.getElementById('task-priority');
+                
+                if (!projectIdInput || !taskTextInput || !taskPriorityInput) {
+                    console.error("Required task form elements not found.");
+                    showUserAlert("A required task form element is missing. Please refresh the page.", "danger");
+                    return;
+                }
+
+                const projectId = projectIdInput.value;
+                const project = proData.projects.find(p => p.id === projectId);
+                if (project) {
+                    if (!Array.isArray(project.tasks)) project.tasks = [];
+                    const newTask = {
+                        id: `task-${Date.now()}`,
+                        text: taskTextInput.value,
+                        done: false,
+                        priority: parseInt(taskPriorityInput.value) || 2,
+                    };
+                    project.tasks.push(newTask);
+                    updateAndRefreshProjects();
+                } else {
+                    console.error("Project not found for task addition.");
+                    showUserAlert("The project you are trying to add a task to was not found.", "warning");
+                }
+                closeModal('task-modal');
+            }
+
+            // Project Actions
+            window.toggleProjectTask = (projectId, taskId) => {
+                if (!Array.isArray(proData.projects)) proData.projects = [];
+                const project = proData.projects.find(p => p.id === projectId);
+                if (project && Array.isArray(project.tasks)) {
+                    const task = project.tasks.find(t => t.id === taskId);
+                    if (task) {
+                        task.done = !task.done;
+                        updateAndRefreshProjects();
+                    }
+                }
+            };
+
+            window.deleteProject = (projectId) => {
+                if (!Array.isArray(proData.projects)) proData.projects = [];
+                proData.projects = proData.projects.filter(p => p.id !== projectId);
+                updateAndRefreshProjects();
+            };
+            window.archiveProject = (projectId) => {
+                if (!Array.isArray(proData.projects)) proData.projects = [];
+                const project = proData.projects.find(p => p.id === projectId);
+                if (project) {
+                    project.status = 'archived';
+                    updateAndRefreshProjects();
+                }
+            };
+            window.unarchiveProject = (projectId) => {
+                if (!Array.isArray(proData.projects)) proData.projects = [];
+                const project = proData.projects.find(p => p.id === projectId);
+                if (project) {
+                    project.status = 'active';
+                    updateAndRefreshProjects();
+                }
+            };
+
+            // Modal Controls
+            window.openModal = (modalId, data = null) => {
+                const modal = document.getElementById(modalId);
+                if (!modal) return;
+                const form = modal.querySelector('form');
+                if(form) form.reset();
+
+                const todayISO = new Date().toISOString().split('T')[0];
+                const projectDeadlineEl = document.getElementById('project-deadline');
+                if (projectDeadlineEl) projectDeadlineEl.min = todayISO;
+
+                if (data) {
+                    if (modalId === 'project-modal') {
+                        const idEl = document.getElementById('project-id');
+                        const nameEl = document.getElementById('project-name');
+                        const descEl = document.getElementById('project-description');
+                        const deadlineEl = document.getElementById('project-deadline');
+                        const titleEl = document.getElementById('project-modal-title');
+
+                        if (idEl) idEl.value = data.id || '';
+                        if (nameEl) nameEl.value = data.name || '';
+                        if (descEl) descEl.value = data.description || '';
+                        if (deadlineEl) deadlineEl.value = data.deadline || '';
+                        if (titleEl) titleEl.textContent = 'Edit Project';
+                    } else if (modalId === 'task-modal') {
+                        const idEl = document.getElementById('task-project-id');
+                        if (idEl) idEl.value = data.projectId || '';
+                    }
+                } else {
+                    const titleEl = document.getElementById('project-modal-title');
+                    if (titleEl) titleEl.textContent = 'New Project';
+                }
+
+                modal.classList.add('visible');
+            }
+
+            window.closeModal = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.remove('visible');
+            }
+
+            window.showConfirmation = (options, callback) => {
+                const { title, message, confirmText, isDanger = true, buttons } = options;
+
+                const confirmationTitleEl = document.getElementById('confirmation-title');
+                if (confirmationTitleEl) confirmationTitleEl.textContent = title || 'Confirm Action';
+
+                const confirmationMessageEl = document.getElementById('confirmation-message');
+                if (confirmationMessageEl) confirmationMessageEl.textContent = message;
+
+                const buttonsContainer = document.getElementById('confirmation-buttons');
+                if (!buttonsContainer) return;
+
+                window.confirmAction = null;
+                window.importMergeAction = null;
+                window.importOverwriteAction = null;
+
+                if (buttons) {
+                    buttonsContainer.innerHTML = buttons;
+                } else {
+                    buttonsContainer.innerHTML = `
+                        <button id="cancel-btn" class="secondary-btn font-semibold py-2 px-8 rounded-lg">Cancel</button>
+                        <button id="confirm-btn" class="${isDanger ? 'danger-btn' : 'pro-btn'} font-semibold py-2 px-8 rounded-lg">
+                            ${escapeHtml(confirmText || 'Confirm')}
+                        </button>
+                    `;
+                    window.confirmAction = callback;
+                }
+
+                openModal('confirmation-modal');
+            }
+            
+            window.refreshApp = () => {
+                handleFilterSortChange();
+            };
+            
+        })();
+    </script>
+</body>
+</html>
